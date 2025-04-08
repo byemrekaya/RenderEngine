@@ -1,23 +1,20 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ValidatorFn } from '@angular/forms';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import {
+  ValidationService,
+  ValidationRule,
+} from '../services/validation.service';
+import { NavigationService } from '../services/navigation.service';
 
 export interface BaseConfig {
   id?: string;
   label?: string;
   required?: boolean;
   disabled?: boolean;
-  validations?: ValidationRules;
+  validations?: ValidationRule[];
   [key: string]: unknown;
-}
-
-export interface ValidationRules {
-  required?: boolean;
-  min?: number;
-  max?: number;
-  pattern?: string;
-  custom?: (value: unknown) => boolean;
 }
 
 export interface ValidationError {
@@ -30,7 +27,6 @@ export interface ValidationError {
 })
 export abstract class BaseWrapperComponent<
     TConfig extends BaseConfig = BaseConfig,
-    TValue = unknown,
   >
   implements OnInit, OnDestroy
 {
@@ -39,6 +35,8 @@ export abstract class BaseWrapperComponent<
   protected form: FormGroup;
   protected destroy$ = new Subject<void>();
   protected validationErrors: ValidationError[] = [];
+  protected validationService = inject(ValidationService);
+  protected navigationService = inject(NavigationService);
 
   constructor(protected fb: FormBuilder) {
     this.form = this.fb.group({});
@@ -58,8 +56,10 @@ export abstract class BaseWrapperComponent<
   protected abstract initializeForm(): void;
 
   protected setupValidations(): void {
-    if (this.config?.validations) {
-      const validators = this.buildValidators();
+    if (this.config?.validations?.length) {
+      const validators = this.validationService.getValidators(
+        this.config.validations,
+      );
       Object.keys(this.form.controls).forEach((key) => {
         this.form.get(key)?.setValidators(validators);
       });
@@ -67,13 +67,10 @@ export abstract class BaseWrapperComponent<
   }
 
   protected subscribeToValueChanges(): void {
-    this.form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
-      this.onValueChange(value);
+    this.form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.validateForm();
+      this.updateNavigationState();
     });
-  }
-
-  protected onValueChange(value: TValue): void {
-    this.validateForm();
   }
 
   protected validateForm(): void {
@@ -82,12 +79,10 @@ export abstract class BaseWrapperComponent<
       Object.keys(this.form.controls).forEach((key) => {
         const control = this.form.get(key);
         if (control?.errors) {
-          Object.keys(control.errors).forEach((errorKey) => {
-            const errorMessages = this.buildErrorMessages();
+          Object.keys(control.errors).forEach((errorType) => {
             this.validationErrors.push({
-              type: errorKey,
-              message:
-                errorMessages[errorKey] || `Validation error: ${errorKey}`,
+              type: errorType,
+              message: this.validationService.getErrorMessage(control.errors!),
             });
           });
         }
@@ -95,17 +90,28 @@ export abstract class BaseWrapperComponent<
     }
   }
 
+  protected updateNavigationState(): void {
+    this.navigationService.setNavigationState({
+      canProceed: this.form.valid,
+      errors:
+        this.validationErrors.length > 0
+          ? this.validationErrors.map((error) => error.message)
+          : undefined,
+    });
+  }
+
   public isValid(): boolean {
     return this.form.valid;
   }
 
-  public getValue(): TValue {
+  public getValue(): unknown {
     return this.form.value;
   }
 
   public reset(): void {
     this.form.reset();
     this.validationErrors = [];
+    this.updateNavigationState();
   }
 
   public disable(): void {
@@ -115,8 +121,4 @@ export abstract class BaseWrapperComponent<
   public enable(): void {
     this.form.enable();
   }
-
-  protected abstract buildValidators(): ValidatorFn[];
-
-  protected abstract buildErrorMessages(): Record<string, string>;
 }

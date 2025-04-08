@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ComponentFactory } from '../services/component-factory.service';
+import { ComponentFactory } from '@core';
 
 @Component({
   selector: 'app-render-engine',

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { RenderEngineComponent } from './core/render-engine/render-engine.component';
-import { LayoutComponent } from './layout/layout.component';
+import { RenderEngineComponent } from '@core';
+import { LayoutComponent } from '@layout';
 
 export const routes: Routes = [
   {

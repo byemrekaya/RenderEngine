@@ -1,0 +1,22 @@
+@function spacing($multiplier) {
+  @return $spacing-unit * $multiplier;
+}
+
+@function rem($pixels) {
+  @return ($pixels / 16) * 1rem;
+}
+
+@function color-opacity($color, $opacity) {
+  @return rgba($color, $opacity);
+}
+
+@function z-index($level) {
+  $z-indexes: (
+    modal: 1000,
+    overlay: 900,
+    dropdown: 800,
+    header: 700,
+    footer: 600
+  );
+  @return map-get($z-indexes, $level);
+}

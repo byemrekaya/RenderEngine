@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { NavigationService } from '../core/services/navigation.service';
+import { CommonModule } from '@angular/common';
+import { NavigationService } from '@services/navigation.service';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, CommonModule],
   template: `
     <div class="layout-container">
       <header class="banner">
@@ -22,6 +23,17 @@ import { NavigationService } from '../core/services/navigation.service';
             Next
           </button>
         </nav>
+        <div
+          *ngIf="(navigationService.getErrors() | async)?.length"
+          class="navigation-errors"
+        >
+          <p
+            *ngFor="let error of navigationService.getErrors() | async"
+            class="error-message"
+          >
+            {{ error }}
+          </p>
+        </div>
       </main>
 
       <footer class="footer">
@@ -82,11 +94,24 @@ import { NavigationService } from '../core/services/navigation.service';
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: all 0.3s;
       }
 
       .nav-button:hover {
         background-color: #2980b9;
+      }
+
+      .navigation-errors {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #fee;
+        border-radius: 4px;
+        color: #dc3545;
+      }
+
+      .error-message {
+        margin: 0.25rem 0;
+        font-size: 0.875rem;
       }
 
       .footer {

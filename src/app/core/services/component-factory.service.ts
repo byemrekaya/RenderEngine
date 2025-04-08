@@ -1,6 +1,6 @@
 import { Injectable, Type } from '@angular/core';
-import { BasicRadioListWrapper } from '../../wrappers/basic-radio-list/basic-radio-list.wrapper';
-import { ConfigService } from '../config/config.service';
+import { BasicRadioListComponent } from '@wrappers';
+import { ConfigService } from '@core';
 
 export type ComponentConfig = Record<string, unknown>;
 
@@ -20,7 +20,7 @@ export class ComponentFactory {
   }
 
   private registerComponents() {
-    this.componentMap.set('basic-radio-list', BasicRadioListWrapper);
+    this.componentMap.set('basic-radio-list', BasicRadioListComponent);
   }
 
   async createComponent(

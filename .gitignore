@@ -40,3 +40,18 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+src/app/app.component.html
+src/app/app.component.scss
+src/app/app.component.spec.ts
+src/app/app.component.ts
+src/app/app.routes.ts
+src/app/core/config/config.service.ts
+src/app/core/render-engine/render-engine.component.ts
+src/app/core/services/component-factory.service.ts
+src/app/wrappers/basic-radio-list/basic-radio-list.wrapper.ts
+src/main.ts
+src/app/app.routes.ts
+src/app/app.component.ts
+src/app/app.component.spec.ts
+src/app/app.component.scss
+src/app/app.component.html

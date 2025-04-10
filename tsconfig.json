@@ -38,7 +38,8 @@
       "@models": ["app/core/models/index"],
       "@models/*": ["app/core/models/*"],
       "@utils": ["app/shared/utils/index"],
-      "@utils/*": ["app/shared/utils/*"]
+      "@utils/*": ["app/shared/utils/*"],
+      "@templates/*": ["src/app/templates/*"]
     }
   },
   "angularCompilerOptions": {

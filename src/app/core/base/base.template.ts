@@ -5,8 +5,8 @@ import { takeUntil } from 'rxjs/operators';
 import {
   ValidationService,
   ValidationRule,
-} from '../services/validation.service';
-import { NavigationService } from '../services/navigation.service';
+} from '../../core/services/validation.service';
+import { NavigationService } from '../../core/services/navigation.service';
 
 export interface BaseConfig {
   id?: string;
@@ -25,7 +25,7 @@ export interface ValidationError {
 @Component({
   template: '',
 })
-export abstract class BaseWrapperComponent<
+export abstract class BaseTemplateComponent<
     TConfig extends BaseConfig = BaseConfig,
   >
   implements OnInit, OnDestroy

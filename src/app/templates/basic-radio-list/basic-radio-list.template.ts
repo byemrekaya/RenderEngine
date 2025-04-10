@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { BaseConfig, BaseWrapperComponent } from '@core';
+import { BaseConfig, BaseTemplateComponent } from '@core';
 
 interface RadioOption {
   id: number;
@@ -88,7 +88,7 @@ interface RadioListConfig extends BaseConfig {
     `,
   ],
 })
-export class BasicRadioListTemplate extends BaseWrapperComponent<RadioListConfig> {
+export class BasicRadioListTemplate extends BaseTemplateComponent<RadioListConfig> {
   constructor(fb: FormBuilder) {
     super(fb);
   }

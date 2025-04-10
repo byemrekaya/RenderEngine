@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { RenderEngineComponent } from '@core';
-import { LayoutComponent } from '@layout';
+import { LayoutComponent } from './layout';
 
 export const routes: Routes = [
   {
@@ -16,7 +16,7 @@ export const routes: Routes = [
         path: 'type',
         component: RenderEngineComponent,
         data: {
-          shortcode: 'basic-radio-list',
+          templateKey: 'basic-radio-list',
           configKey: 'vehicle-type-config',
         },
       },
@@ -24,7 +24,7 @@ export const routes: Routes = [
         path: 'age',
         component: RenderEngineComponent,
         data: {
-          shortcode: 'basic-radio-list',
+          templateKey: 'basic-radio-list',
           configKey: 'vehicle-age-config',
         },
       },

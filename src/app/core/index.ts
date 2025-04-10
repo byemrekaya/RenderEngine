@@ -1,5 +1,5 @@
 // Base
-export * from './base/base.wrapper';
+export * from '../templates/base/base.template';
 
 // Services
 export * from './services/navigation.service';

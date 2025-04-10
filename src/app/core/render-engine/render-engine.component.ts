@@ -33,11 +33,11 @@ export class RenderEngineComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    const { shortcode, configKey } = this.route.snapshot.data;
+    const { templateKey, configKey } = this.route.snapshot.data;
 
     try {
       const { component, config } = await this.componentFactory.createComponent(
-        shortcode,
+        templateKey,
         configKey,
       );
 

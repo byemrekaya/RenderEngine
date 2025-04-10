@@ -24,13 +24,13 @@ export class ComponentFactory {
   }
 
   async createComponent(
-    shortcode: string,
+    templateKey: string,
     configKey: string,
   ): Promise<ComponentData> {
     try {
-      const component = this.componentRegistry.get(shortcode);
+      const component = this.componentRegistry.get(templateKey);
       if (!component) {
-        throw new Error(`Component not found for shortcode: ${shortcode}`);
+        throw new Error(`Component not found for templateKey: ${templateKey}`);
       }
 
       const config = await this.configService.loadConfig(configKey);
@@ -45,7 +45,7 @@ export class ComponentFactory {
     }
   }
 
-  registerComponent<T>(shortcode: string, component: Type<T>) {
-    this.componentRegistry.set(shortcode, component);
+  registerComponent<T>(templateKey: string, component: Type<T>) {
+    this.componentRegistry.set(templateKey, component);
   }
 }

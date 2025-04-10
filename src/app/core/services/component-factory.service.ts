@@ -1,5 +1,5 @@
 import { Injectable, Type } from '@angular/core';
-import { BasicRadioListComponent } from '@wrappers';
+import { BasicRadioListTemplate } from '@app/templates';
 import { ConfigService } from '@core';
 
 export type ComponentConfig = Record<string, unknown>;
@@ -13,14 +13,14 @@ export interface ComponentData<T = unknown> {
   providedIn: 'root',
 })
 export class ComponentFactory {
-  private componentMap = new Map<string, Type<unknown>>();
+  private componentRegistry = new Map<string, Type<unknown>>();
 
   constructor(private configService: ConfigService) {
-    this.registerComponents();
+    this.initializeRegistry();
   }
 
-  private registerComponents() {
-    this.componentMap.set('basic-radio-list', BasicRadioListComponent);
+  private initializeRegistry() {
+    this.componentRegistry.set('basic-radio-list', BasicRadioListTemplate);
   }
 
   async createComponent(
@@ -28,7 +28,7 @@ export class ComponentFactory {
     configKey: string,
   ): Promise<ComponentData> {
     try {
-      const component = this.componentMap.get(shortcode);
+      const component = this.componentRegistry.get(shortcode);
       if (!component) {
         throw new Error(`Component not found for shortcode: ${shortcode}`);
       }
@@ -46,6 +46,6 @@ export class ComponentFactory {
   }
 
   registerComponent<T>(shortcode: string, component: Type<T>) {
-    this.componentMap.set(shortcode, component);
+    this.componentRegistry.set(shortcode, component);
   }
 }

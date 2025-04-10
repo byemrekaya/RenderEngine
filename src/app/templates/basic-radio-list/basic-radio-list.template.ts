@@ -88,7 +88,7 @@ interface RadioListConfig extends BaseConfig {
     `,
   ],
 })
-export class BasicRadioListComponent extends BaseWrapperComponent<RadioListConfig> {
+export class BasicRadioListTemplate extends BaseWrapperComponent<RadioListConfig> {
   constructor(fb: FormBuilder) {
     super(fb);
   }

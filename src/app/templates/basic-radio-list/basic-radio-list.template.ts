@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { BaseConfig, BaseTemplateComponent } from '@core';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../store/models/app-state.model';
 
 interface RadioOption {
   id: number;
@@ -12,6 +14,7 @@ interface RadioListConfig extends BaseConfig {
   title: string;
   subtitle: string;
   options: RadioOption[];
+  stateKey: keyof AppState;
 }
 
 @Component({
@@ -88,10 +91,16 @@ interface RadioListConfig extends BaseConfig {
     `,
   ],
 })
-export class BasicRadioListTemplate extends BaseTemplateComponent<RadioListConfig> {
+export class BasicRadioListTemplate
+  extends BaseTemplateComponent<RadioListConfig>
+  implements OnInit
+{
   onValueChange?: (value: any) => void;
 
-  constructor(fb: FormBuilder) {
+  constructor(
+    fb: FormBuilder,
+    private store: Store<{ app: AppState }>,
+  ) {
     super(fb);
   }
 
@@ -106,6 +115,15 @@ export class BasicRadioListTemplate extends BaseTemplateComponent<RadioListConfi
         this.validationService.getValidators(defaultValidations),
       ],
     });
+
+    this.store
+      .select((state) => state.app[this.config.stateKey])
+      .subscribe((value) => {
+        if (value) {
+          this.form.get('selectedOption')?.setValue(value);
+          this.updateNavigationState();
+        }
+      });
 
     this.form.get('selectedOption')?.valueChanges.subscribe((value) => {
       if (this.onValueChange && value !== null) {

@@ -4,8 +4,12 @@ import { updateState } from '../actions/app.actions';
 
 export const appReducer = createReducer(
   initialAppState,
-  on(updateState, (state, { key, value }) => ({
-    ...state,
-    [key]: value,
-  })),
+  on(updateState, (state, { key, value }) => {
+    const newState = {
+      ...state,
+      [key]: value,
+    };
+    localStorage.setItem('app', JSON.stringify(newState));
+    return newState;
+  }),
 );

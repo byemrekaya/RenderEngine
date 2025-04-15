@@ -8,11 +8,15 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { provideState } from '@ngrx/store';
 
+const initialState = localStorage.getItem('app')
+  ? JSON.parse(localStorage.getItem('app')!)
+  : { type: null, age: null };
+
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     provideStore(),
-    provideState('app', appReducer),
+    provideState('app', appReducer, { initialState }),
     provideHttpClient(),
     provideStoreDevtools({
       maxAge: 25,

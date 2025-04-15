@@ -89,6 +89,8 @@ interface RadioListConfig extends BaseConfig {
   ],
 })
 export class BasicRadioListTemplate extends BaseTemplateComponent<RadioListConfig> {
+  onValueChange?: (value: any) => void;
+
   constructor(fb: FormBuilder) {
     super(fb);
   }
@@ -103,6 +105,12 @@ export class BasicRadioListTemplate extends BaseTemplateComponent<RadioListConfi
         null,
         this.validationService.getValidators(defaultValidations),
       ],
+    });
+
+    this.form.get('selectedOption')?.valueChanges.subscribe((value) => {
+      if (this.onValueChange && value !== null) {
+        this.onValueChange(value);
+      }
     });
   }
 }

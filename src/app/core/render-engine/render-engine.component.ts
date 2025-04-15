@@ -2,6 +2,9 @@ import { Component, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ComponentFactory } from '@core';
+import { Store } from '@ngrx/store';
+import { updateState } from '../../store/actions/app.actions';
+import { AppState } from '../../store/models/app-state.model';
 
 @Component({
   selector: 'app-render-engine',
@@ -30,6 +33,7 @@ export class RenderEngineComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private componentFactory: ComponentFactory,
+    private store: Store<{ app: AppState }>,
   ) {}
 
   async ngOnInit() {
@@ -43,15 +47,27 @@ export class RenderEngineComponent implements OnInit {
 
       if (component) {
         const componentRef = this.container.createComponent(component);
-        if (
-          componentRef.instance &&
-          typeof componentRef.instance === 'object'
-        ) {
+        if (componentRef.instance) {
           (componentRef.instance as any).config = config;
+          (componentRef.instance as any).onValueChange =
+            this.handleAction(config);
         }
       }
     } catch (error) {
-      console.error('Failed to render component:', error);
+      console.error('Error creating component:', error);
     }
   }
+
+  handleAction = (config: any) => {
+    return (value: any) => {
+      if (config['actionName'] && config['stateKey']) {
+        this.store.dispatch(
+          updateState({
+            key: config['stateKey'],
+            value,
+          }),
+        );
+      }
+    };
+  };
 }

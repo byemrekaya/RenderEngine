@@ -23,6 +23,8 @@ export class ConfigService {
       validations: {
         required: true,
       },
+      actionName: 'vehicleType',
+      stateKey: 'type',
     });
 
     this.configMap.set('vehicle-age-config', {
@@ -35,6 +37,8 @@ export class ConfigService {
       validations: {
         required: true,
       },
+      actionName: 'vehicleAge',
+      stateKey: 'age',
     });
   }
 

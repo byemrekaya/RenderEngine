@@ -29,6 +29,14 @@ export const routes: Routes = [
           strategyKey: 'custom-logic',
         },
       },
+      {
+        path: 'user',
+        component: RenderEngineComponent,
+        data: {
+          templateKey: 'user-form',
+          configKey: 'user-form-config',
+        },
+      },
     ],
   },
 ];

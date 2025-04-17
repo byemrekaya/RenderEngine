@@ -1,12 +1,12 @@
 import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import {
   ValidationService,
   ValidationRule,
-} from '../../core/services/validation.service';
-import { NavigationService } from '../../core/services/navigation.service';
+} from '../services/validation.service';
+import { NavigationService } from '../services/navigation.service';
 
 export interface BaseConfig {
   id?: string;
@@ -37,20 +37,25 @@ export abstract class BaseTemplateComponent<
   protected validationErrors: ValidationError[] = [];
   protected validationService = inject(ValidationService);
   protected navigationService = inject(NavigationService);
+  protected isInitialized = false;
 
   constructor(protected fb: FormBuilder) {
     this.form = this.fb.group({});
   }
 
   ngOnInit(): void {
-    this.initializeForm();
-    this.setupValidations();
-    this.subscribeToValueChanges();
+    if (!this.isInitialized) {
+      this.initializeForm();
+      this.setupValidations();
+      this.setupFormSubscriptions();
+      this.isInitialized = true;
+    }
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.isInitialized = false;
   }
 
   protected abstract initializeForm(): void;
@@ -66,11 +71,18 @@ export abstract class BaseTemplateComponent<
     }
   }
 
-  protected subscribeToValueChanges(): void {
-    this.form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.validateForm();
-      this.updateNavigationState();
-    });
+  protected setupFormSubscriptions(): void {
+    this.form.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged(
+          (prev, curr) => JSON.stringify(prev) === JSON.stringify(curr),
+        ),
+        debounceTime(300),
+      )
+      .subscribe(() => {
+        this.validateForm();
+      });
   }
 
   protected validateForm(): void {
@@ -88,15 +100,13 @@ export abstract class BaseTemplateComponent<
         }
       });
     }
+    this.updateNavigationState();
   }
 
   protected updateNavigationState(): void {
     this.navigationService.setNavigationState({
       canProceed: this.form.valid,
-      errors:
-        this.validationErrors.length > 0
-          ? this.validationErrors.map((error) => error.message)
-          : undefined,
+      errors: this.validationErrors.map((error) => error.message),
     });
   }
 

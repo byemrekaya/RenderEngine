@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ViewContainerRef,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ComponentFactory } from '@core';
@@ -6,6 +12,8 @@ import { Store } from '@ngrx/store';
 import { updateState } from '../../store/actions/app.actions';
 import { AppState } from '../../store/models/app-state.model';
 import { TemplateStrategy } from '../interfaces/template-strategy.interface';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-render-engine',
@@ -27,22 +35,63 @@ import { TemplateStrategy } from '../interfaces/template-strategy.interface';
     `,
   ],
 })
-export class RenderEngineComponent implements OnInit {
+export class RenderEngineComponent implements OnInit, OnDestroy {
   @ViewChild('container', { read: ViewContainerRef, static: true })
   container!: ViewContainerRef;
 
   private lastHandledValues = new Map<string, any>();
+  private destroy$ = new Subject<void>();
+  private currentComponentRef: any;
+  private actionSubject = new Subject<{
+    templateKey: string;
+    value: any;
+    strategy?: TemplateStrategy;
+    config?: any;
+  }>();
 
   constructor(
     private route: ActivatedRoute,
     private componentFactory: ComponentFactory,
     private store: Store<{ app: AppState }>,
-  ) {}
+  ) {
+    this.setupActionHandler();
+  }
 
-  async ngOnInit() {
-    const { templateKey, configKey, strategyKey } = this.route.snapshot.data;
+  private setupActionHandler() {
+    this.actionSubject
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(300),
+        distinctUntilChanged(
+          (prev, curr) =>
+            prev.templateKey === curr.templateKey &&
+            JSON.stringify(prev.value) === JSON.stringify(curr.value),
+        ),
+      )
+      .subscribe(({ templateKey, value, strategy, config }) => {
+        this.processAction(templateKey, value, strategy, config);
+      });
+  }
+
+  ngOnInit() {
+    this.route.data.pipe(takeUntil(this.destroy$)).subscribe(async (data) => {
+      await this.initializeComponent(data);
+    });
+  }
+
+  ngOnDestroy() {
+    this.cleanup();
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.actionSubject.complete();
+  }
+
+  private async initializeComponent(data: any) {
+    const { templateKey, configKey, strategyKey } = data;
 
     try {
+      this.cleanup();
+
       const { component, config, strategy } =
         await this.componentFactory.createComponent(
           templateKey,
@@ -51,18 +100,44 @@ export class RenderEngineComponent implements OnInit {
         );
 
       if (component) {
-        const componentRef = this.container.createComponent(component);
-        if (componentRef.instance) {
-          (componentRef.instance as any).config = config;
-          (componentRef.instance as any).onValueChange = this.handleAction(
-            templateKey,
-            strategy,
-            config,
-          );
+        this.currentComponentRef = this.container.createComponent(component);
+        if (this.currentComponentRef.instance) {
+          (this.currentComponentRef.instance as any).config = config;
+          (this.currentComponentRef.instance as any).onValueChange =
+            this.handleAction(templateKey, strategy, config);
         }
       }
     } catch (error) {
-      // Hata durumunda sessizce devam et
+      console.error('Component initialization error:', error);
+    }
+  }
+
+  private cleanup() {
+    if (this.currentComponentRef) {
+      this.currentComponentRef.destroy();
+      this.currentComponentRef = null;
+    }
+    this.container.clear();
+    this.lastHandledValues.clear();
+  }
+
+  private processAction(
+    templateKey: string,
+    value: any,
+    strategy?: TemplateStrategy,
+    config?: any,
+  ) {
+    if (config?.['stateKey']) {
+      this.store.dispatch(
+        updateState({
+          key: config['stateKey'],
+          value,
+        }),
+      );
+    }
+
+    if (strategy) {
+      strategy.handleAction(value, config);
     }
   }
 
@@ -72,25 +147,7 @@ export class RenderEngineComponent implements OnInit {
     config?: any,
   ) => {
     return (value: any) => {
-      const lastValue = this.lastHandledValues.get(templateKey);
-      if (lastValue === value) {
-        return;
-      }
-
-      this.lastHandledValues.set(templateKey, value);
-
-      if (config?.['stateKey']) {
-        this.store.dispatch(
-          updateState({
-            key: config['stateKey'],
-            value,
-          }),
-        );
-      }
-
-      if (strategy) {
-        strategy.handleAction(value, config);
-      }
+      this.actionSubject.next({ templateKey, value, strategy, config });
     };
   };
 }

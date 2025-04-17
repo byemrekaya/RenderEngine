@@ -1,8 +1,9 @@
 import { Injectable, Type, Inject } from '@angular/core';
 import { BasicRadioListTemplate } from '@app/templates';
-import { ConfigService } from '@core';
+import { ConfigService } from '../config/config.service';
 import { TemplateStrategy } from '../interfaces/template-strategy.interface';
 import { CustomLogicStrategy } from '../strategies/custom-logic.strategy';
+import { UserFormTemplate } from '../../templates/user-form/user-form.template';
 
 export type ComponentConfig = Record<string, unknown>;
 
@@ -29,6 +30,7 @@ export class ComponentFactory {
 
   private initializeRegistry() {
     this.componentRegistry.set('basic-radio-list', BasicRadioListTemplate);
+    this.componentRegistry.set('user-form', UserFormTemplate);
     this.strategyRegistry.set('custom-logic', this.customLogicStrategy);
   }
 

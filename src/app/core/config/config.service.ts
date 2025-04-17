@@ -40,6 +40,22 @@ export class ConfigService {
       actionName: 'vehicleAge',
       stateKey: 'age',
     });
+
+    this.configMap.set('user-form-config', {
+      title: 'Fahrzeughalter Informationen',
+      subtitle: 'Bitte füllen Sie das Formular mit Ihren Informationen aus.',
+      labels: {
+        name: 'Vorname',
+        surname: 'Nachname',
+        email: 'E-Mail',
+      },
+      required: true,
+      validations: {
+        required: true,
+      },
+      actionName: 'userInfo',
+      stateKey: 'userInfo',
+    });
   }
 
   async loadConfig(key: string): Promise<any> {

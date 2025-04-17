@@ -10,7 +10,7 @@ import { provideState } from '@ngrx/store';
 
 const initialState = localStorage.getItem('app')
   ? JSON.parse(localStorage.getItem('app')!)
-  : { type: null, age: null };
+  : { type: null, age: null, userInfo: null };
 
 bootstrapApplication(AppComponent, {
   providers: [

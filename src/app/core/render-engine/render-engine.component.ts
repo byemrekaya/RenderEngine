@@ -5,6 +5,7 @@ import { ComponentFactory } from '@core';
 import { Store } from '@ngrx/store';
 import { updateState } from '../../store/actions/app.actions';
 import { AppState } from '../../store/models/app-state.model';
+import { TemplateStrategy } from '../interfaces/template-strategy.interface';
 
 @Component({
   selector: 'app-render-engine',
@@ -37,20 +38,24 @@ export class RenderEngineComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    const { templateKey, configKey } = this.route.snapshot.data;
+    const { templateKey, configKey, strategyKey } = this.route.snapshot.data;
 
     try {
-      const { component, config } = await this.componentFactory.createComponent(
-        templateKey,
-        configKey,
-      );
+      const { component, config, strategy } =
+        await this.componentFactory.createComponent(
+          templateKey,
+          configKey,
+          strategyKey,
+        );
 
       if (component) {
         const componentRef = this.container.createComponent(component);
         if (componentRef.instance) {
           (componentRef.instance as any).config = config;
-          (componentRef.instance as any).onValueChange =
-            this.handleAction(config);
+          (componentRef.instance as any).onValueChange = this.handleAction(
+            strategy,
+            config,
+          );
         }
       }
     } catch (error) {
@@ -58,9 +63,11 @@ export class RenderEngineComponent implements OnInit {
     }
   }
 
-  handleAction = (config: any) => {
+  handleAction = (strategy?: TemplateStrategy, config?: any) => {
     return (value: any) => {
-      if (config['actionName'] && config['stateKey']) {
+      if (strategy) {
+        strategy.handleAction(value);
+      } else if (config?.['stateKey']) {
         this.store.dispatch(
           updateState({
             key: config['stateKey'],

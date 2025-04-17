@@ -26,6 +26,7 @@ export const routes: Routes = [
         data: {
           templateKey: 'basic-radio-list',
           configKey: 'vehicle-age-config',
+          strategyKey: 'alert',
         },
       },
     ],

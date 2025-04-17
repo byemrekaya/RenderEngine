@@ -1,12 +1,15 @@
-import { Injectable, Type } from '@angular/core';
+import { Injectable, Type, Inject } from '@angular/core';
 import { BasicRadioListTemplate } from '@app/templates';
 import { ConfigService } from '@core';
+import { TemplateStrategy } from '../interfaces/template-strategy.interface';
+import { AlertStrategy } from '../strategies/alert.strategy';
 
 export type ComponentConfig = Record<string, unknown>;
 
 export interface ComponentData<T = unknown> {
   component: Type<T>;
   config: ComponentConfig;
+  strategy?: TemplateStrategy;
 }
 
 @Injectable({
@@ -14,18 +17,24 @@ export interface ComponentData<T = unknown> {
 })
 export class ComponentFactory {
   private componentRegistry = new Map<string, Type<unknown>>();
+  private strategyRegistry = new Map<string, TemplateStrategy>();
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject(AlertStrategy) private alertStrategy: AlertStrategy,
+  ) {
     this.initializeRegistry();
   }
 
   private initializeRegistry() {
     this.componentRegistry.set('basic-radio-list', BasicRadioListTemplate);
+    this.strategyRegistry.set('alert', this.alertStrategy);
   }
 
   async createComponent(
     templateKey: string,
     configKey: string,
+    strategyKey?: string,
   ): Promise<ComponentData> {
     try {
       const component = this.componentRegistry.get(templateKey);
@@ -34,10 +43,14 @@ export class ComponentFactory {
       }
 
       const config = await this.configService.loadConfig(configKey);
+      const strategy = strategyKey
+        ? this.strategyRegistry.get(strategyKey)
+        : undefined;
 
       return {
         component,
         config,
+        strategy,
       };
     } catch (error) {
       console.error('Failed to create component:', error);
@@ -47,5 +60,9 @@ export class ComponentFactory {
 
   registerComponent<T>(templateKey: string, component: Type<T>) {
     this.componentRegistry.set(templateKey, component);
+  }
+
+  registerStrategy(strategyKey: string, strategy: TemplateStrategy) {
+    this.strategyRegistry.set(strategyKey, strategy);
   }
 }

@@ -31,6 +31,8 @@ export class RenderEngineComponent implements OnInit {
   @ViewChild('container', { read: ViewContainerRef, static: true })
   container!: ViewContainerRef;
 
+  private lastHandledValues = new Map<string, any>();
+
   constructor(
     private route: ActivatedRoute,
     private componentFactory: ComponentFactory,
@@ -53,27 +55,41 @@ export class RenderEngineComponent implements OnInit {
         if (componentRef.instance) {
           (componentRef.instance as any).config = config;
           (componentRef.instance as any).onValueChange = this.handleAction(
+            templateKey,
             strategy,
             config,
           );
         }
       }
     } catch (error) {
-      console.error('Error creating component:', error);
+      // Hata durumunda sessizce devam et
     }
   }
 
-  handleAction = (strategy?: TemplateStrategy, config?: any) => {
+  handleAction = (
+    templateKey: string,
+    strategy?: TemplateStrategy,
+    config?: any,
+  ) => {
     return (value: any) => {
-      if (strategy) {
-        strategy.handleAction(value);
-      } else if (config?.['stateKey']) {
+      const lastValue = this.lastHandledValues.get(templateKey);
+      if (lastValue === value) {
+        return;
+      }
+
+      this.lastHandledValues.set(templateKey, value);
+
+      if (config?.['stateKey']) {
         this.store.dispatch(
           updateState({
             key: config['stateKey'],
             value,
           }),
         );
+      }
+
+      if (strategy) {
+        strategy.handleAction(value, config);
       }
     };
   };

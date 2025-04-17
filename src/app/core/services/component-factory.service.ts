@@ -2,7 +2,7 @@ import { Injectable, Type, Inject } from '@angular/core';
 import { BasicRadioListTemplate } from '@app/templates';
 import { ConfigService } from '@core';
 import { TemplateStrategy } from '../interfaces/template-strategy.interface';
-import { AlertStrategy } from '../strategies/alert.strategy';
+import { CustomLogicStrategy } from '../strategies/custom-logic.strategy';
 
 export type ComponentConfig = Record<string, unknown>;
 
@@ -21,14 +21,15 @@ export class ComponentFactory {
 
   constructor(
     private configService: ConfigService,
-    @Inject(AlertStrategy) private alertStrategy: AlertStrategy,
+    @Inject(CustomLogicStrategy)
+    private customLogicStrategy: CustomLogicStrategy,
   ) {
     this.initializeRegistry();
   }
 
   private initializeRegistry() {
     this.componentRegistry.set('basic-radio-list', BasicRadioListTemplate);
-    this.strategyRegistry.set('alert', this.alertStrategy);
+    this.strategyRegistry.set('custom-logic', this.customLogicStrategy);
   }
 
   async createComponent(

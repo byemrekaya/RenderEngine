@@ -9,8 +9,16 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'type',
+        redirectTo: 'user',
         pathMatch: 'full',
+      },
+      {
+        path: 'user',
+        component: RenderEngineComponent,
+        data: {
+          templateKey: 'user-form',
+          configKey: 'user-form-config',
+        },
       },
       {
         path: 'type',
@@ -27,14 +35,6 @@ export const routes: Routes = [
           templateKey: 'basic-radio-list',
           configKey: 'vehicle-age-config',
           strategyKey: 'custom-logic',
-        },
-      },
-      {
-        path: 'user',
-        component: RenderEngineComponent,
-        data: {
-          templateKey: 'user-form',
-          configKey: 'user-form-config',
         },
       },
     ],
